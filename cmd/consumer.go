@@ -9,8 +9,6 @@ import (
 	"github.com/moyu-x/level-5/internal/command/consumer"
 )
 
-var configPath string
-
 // consumerCmd represents the consumer command
 var consumerCmd = &cobra.Command{
 	Use:     "consumer",
@@ -23,5 +21,4 @@ var consumerCmd = &cobra.Command{
 
 func init() {
 	kafkaCmd.AddCommand(consumerCmd)
-	consumerCmd.Flags().StringVarP(&configPath, "config", "c", "configs/config.toml", "config path")
 }

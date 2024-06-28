@@ -1,13 +1,12 @@
-/*
-Copyright © 2024 NAME HERE <EMAIL ADDRESS>
-*/
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
+
+	"github.com/moyu-x/level-5/internal/command/producer"
 )
+
+var producerConfig producer.ProduceConfig
 
 // producerCmd represents the producer command
 var producerCmd = &cobra.Command{
@@ -15,20 +14,14 @@ var producerCmd = &cobra.Command{
 	Aliases: []string{"p"},
 	Short:   "producer data into kafka",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("producer called")
+		producer.Run(configPath, producerConfig)
 	},
 }
 
 func init() {
 	kafkaCmd.AddCommand(producerCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// producerCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// producerCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	producerCmd.Flags().StringVarP(&producerConfig.FilePath, "path", "p", "", "template or data path")
+	producerCmd.Flags().IntVarP(&producerConfig.Round, "round", "r", 1, "replay round")
+	producerCmd.Flags().StringVarP(&producerConfig.Mode, "mode", "m", "r", "producer mode: r -> replay, f -> fake data")
+	producerCmd.Flags().StringVarP(&producerConfig.Data, "data", "d", "", "kafka data")
 }
