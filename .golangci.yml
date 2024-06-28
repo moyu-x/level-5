@@ -1,0 +1,51 @@
+linters:
+  disable-all: true
+  enable:
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - typecheck
+    - unused
+    - bidichk
+    - cyclop
+    - dogsled
+    - dupl
+    - durationcheck
+    - errorlint
+    - exportloopref
+    - forbidigo
+    - forcetypeassert
+    - funlen
+    - gci
+    - gocognit
+    - gofumpt
+    - loggercheck
+    - nestif
+    - whitespace
+linters-settings:
+  cyclop:
+    skip-tests: true
+  forbidigo:
+    forbid:
+      - "^print$"
+      - "^println$"
+      - '^fmt\.Print.*'
+  goimports:
+    local-prefixes: github.com/moyu-x/level-5
+  funlen:
+    lines: 60
+    statements: 40
+  gci:
+    sections:
+      - standard
+      - default
+      - prefix(github.com/moyu-x/level-5)
+      - blank
+      - dot
+  dupl:
+    threshold: 200
+run:
+  tests: false
+  concurrency: 4

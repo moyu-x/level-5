@@ -1,0 +1,50 @@
+version: '3'
+
+tasks:
+  default:
+    cmds:
+      - task --list-all
+    slient: true
+  wire:
+    desc: Generate the dependency injection files
+    cmds:
+      - wire ./...
+  mod:
+    desc: Update the go.mod file
+    cmds:
+      - go mod download
+      - go mod tidy
+  build:
+    desc: Build the application
+    cmds:
+      - mkdir -p build
+      - go build -o ./build/l5 .
+  fmt:
+    desc: Format the code
+    cmds:
+      - gofumpt -l -w .
+      - gci write --skip-generated -s Standard -s Default -s "Prefix(github.com/moyu-x/level-5)" -s Blank -s Dot .
+      - golines -w --max-len=120 --reformat-tags --shorten-comments --ignore-generated .
+  install-tools:
+    desc: Install the tools
+    cmds:
+      - go install github.com/google/wire/cmd/wire@latest
+      - go install mvdan.cc/gofumpt@latest
+      - go install github.com/air-verse/air@latest
+      - go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+      - go install github.com/daixiang0/gci@latest
+      - go install github.com/segmentio/golines@latest
+      - go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+      - go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+  air:
+    desc: hot-reload the application
+    cmds:
+      - air server -c configs/config.toml
+  lint:
+    desc: Lint the code
+    cmds:
+      - golangci-lint run --timeout 5m
+  protoc:
+    desc: Generate the proto files
+    cmds:
+      - protoc --proto_path=.  --go_out=paths=source_relative:.  pkg/config/*.proto
