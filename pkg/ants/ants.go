@@ -3,14 +3,14 @@ package ants
 import (
 	"os"
 
-	"github.com/go-logr/logr"
 	"github.com/panjf2000/ants"
+	"github.com/rs/zerolog"
 )
 
-func NewAnts(l *logr.Logger) *ants.Pool {
+func NewAnts(l *zerolog.Logger) *ants.Pool {
 	pool, err := ants.NewPool(128, ants.WithPreAlloc(true))
 	if err != nil {
-		l.Error(err, "init ants pool error")
+		l.Error().Msgf("init ants pool error. reason: %v", err)
 		os.Exit(-1)
 	}
 

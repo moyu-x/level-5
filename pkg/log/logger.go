@@ -4,14 +4,12 @@ import (
 	"os"
 	"time"
 
-	"github.com/go-logr/logr"
-	"github.com/go-logr/zerologr"
 	"github.com/rs/zerolog"
 
 	"github.com/moyu-x/level-5/pkg/config"
 )
 
-func NewLogger(c *config.Bootstrap) *logr.Logger {
+func NewLogger(c *config.Bootstrap) *zerolog.Logger {
 	switch c.Logger.
 		Level {
 	case "info":
@@ -22,6 +20,5 @@ func NewLogger(c *config.Bootstrap) *logr.Logger {
 
 	output := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.DateTime}
 	logger := zerolog.New(output).With().Timestamp().Logger()
-	log := zerologr.New(&logger)
-	return &log
+	return &logger
 }

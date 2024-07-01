@@ -3,7 +3,7 @@ package kafka
 import (
 	"time"
 
-	"github.com/go-logr/logr"
+	"github.com/rs/zerolog"
 	kafka "github.com/segmentio/kafka-go"
 
 	"github.com/moyu-x/level-5/pkg/config"
@@ -11,10 +11,10 @@ import (
 
 type K struct {
 	c *config.Bootstrap
-	l *logr.Logger
+	l *zerolog.Logger
 }
 
-func NewKafka(c *config.Bootstrap, l *logr.Logger) *K {
+func NewKafka(c *config.Bootstrap, l *zerolog.Logger) *K {
 	kafka := &K{
 		c: c, l: l,
 	}
@@ -41,6 +41,8 @@ func (k *K) Reader() *kafka.Reader {
 		QueueCapacity:         1024,
 		WatchPartitionChanges: true,
 		StartOffset:           kafka.LastOffset,
+		Logger:                kafka.LoggerFunc(k.infoF),
+		ErrorLogger:           kafka.LoggerFunc(k.errorF),
 	})
 	return reader
 }
@@ -52,6 +54,16 @@ func (k *K) Writer() *kafka.Writer {
 		Balancer:         &kafka.Hash{},
 		Dialer:           k.dialer(),
 		CompressionCodec: kafka.Zstd.Codec(),
+		Logger:           kafka.LoggerFunc(k.infoF),
+		ErrorLogger:      kafka.LoggerFunc(k.errorF),
 	})
 	return w
+}
+
+func (k *K) infoF(msg string, a ...interface{}) {
+	k.l.Info().Msgf(msg, a...)
+}
+
+func (k *K) errorF(msg string, a ...interface{}) {
+	k.l.Error().Msgf(msg, a...)
 }

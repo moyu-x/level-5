@@ -6,7 +6,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/go-logr/logr"
+	"github.com/rs/zerolog"
 
 	"github.com/moyu-x/level-5/pkg/config"
 )
@@ -16,17 +16,17 @@ var (
 	instanceOnce sync.Once
 )
 
-func Tls(l *logr.Logger, c *config.Bootstrap) *tls.Config {
+func Tls(l *zerolog.Logger, c *config.Bootstrap) *tls.Config {
 	instanceOnce.Do(func() {
 		instance = buildTlsConfig(l, c)
 	})
 	return instance
 }
 
-func buildTlsConfig(l *logr.Logger, c *config.Bootstrap) *tls.Config {
+func buildTlsConfig(l *zerolog.Logger, c *config.Bootstrap) *tls.Config {
 	keyPair, err := tls.X509KeyPair(getCertFile(l, c), getKeyFile(l, c))
 	if err != nil {
-		l.Error(err, "build x509 key pair has error, reason: %v")
+		l.Error().Msgf("build x509 key pair has error. reason: %v", err)
 	}
 
 	certPool := x509.NewCertPool()
@@ -38,19 +38,19 @@ func buildTlsConfig(l *logr.Logger, c *config.Bootstrap) *tls.Config {
 	}
 }
 
-func getCertFile(l *logr.Logger, c *config.Bootstrap) []byte {
+func getCertFile(l *zerolog.Logger, c *config.Bootstrap) []byte {
 	certFile, err := os.ReadFile(c.Kafka.CertFilePath)
 	if err != nil {
-		l.Error(err, "read kafka cert file error, reason")
+		l.Error().Msgf("read kafka cert file error. reason: %v", err)
 	}
 	return certFile
 }
 
 // kafka.client.key
-func getKeyFile(l *logr.Logger, c *config.Bootstrap) []byte {
+func getKeyFile(l *zerolog.Logger, c *config.Bootstrap) []byte {
 	keyFile, err := os.ReadFile(c.Kafka.KeyFilePath)
 	if err != nil {
-		l.Error(err, "read kafka key file has error, reason")
+		l.Error().Msgf("read kafka key file has error. reason: %v", err)
 	}
 	return keyFile
 }

@@ -16,10 +16,10 @@ func Run(configPath string) {
 	for {
 		message, err := r.ReadMessage(context.Background())
 		if err != nil {
-			l.Error(err, "read http kafka data has oucur error")
+			l.Error().Msgf("read http kafka data has oucur error. reason: %v", err)
 			continue
 		}
-		l.Info(string(message.Value))
+		l.Info().Msg(string(message.Value))
 
 	}
 }

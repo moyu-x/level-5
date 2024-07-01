@@ -3,8 +3,6 @@ module github.com/moyu-x/level-5
 go 1.22.4
 
 require (
-	github.com/go-logr/logr v1.4.2
-	github.com/go-logr/zerologr v1.2.3
 	github.com/knadh/koanf/parsers/toml v0.1.0
 	github.com/knadh/koanf/providers/file v0.1.0
 	github.com/knadh/koanf/v2 v2.1.1

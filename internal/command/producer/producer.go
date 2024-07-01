@@ -3,7 +3,7 @@ package producer
 import (
 	"context"
 
-	"github.com/go-logr/logr"
+	"github.com/rs/zerolog"
 	"github.com/segmentio/kafka-go"
 
 	"github.com/moyu-x/level-5/pkg/config"
@@ -28,17 +28,16 @@ func Run(configPath string, p ProduceConfig) {
 	case "d":
 		replayData(p, w, l)
 	default:
-		l.Error(nil, "can't found any match mode")
+		l.Error().Msg("can't found any match mode")
 	}
-
 }
 
-func replayData(p ProduceConfig, k *kafka.Writer, l *logr.Logger) {
+func replayData(p ProduceConfig, k *kafka.Writer, l *zerolog.Logger) {
 	if p.Round <= 1000 {
 		msgs := messages(p.Round, p.Data)
 		err := k.WriteMessages(context.Background(), msgs...)
 		if err != nil {
-			l.Error(err, "send kafka data has error")
+			l.Error().Msgf("send kafka data has error. reason: %v", err)
 		}
 	}
 }
