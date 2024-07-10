@@ -30,11 +30,11 @@ func (k *K) dialer() *kafka.Dialer {
 	}
 }
 
-func (k *K) Reader() *kafka.Reader {
+func (k *K) Reader(topic string, groupId string) *kafka.Reader {
 	reader := kafka.NewReader(kafka.ReaderConfig{
 		Brokers:               []string{k.c.Kafka.ServerAddr},
-		GroupID:               k.c.Kafka.GroupId,
-		GroupTopics:           []string{k.c.Kafka.Topic},
+		GroupID:               groupId,
+		GroupTopics:           []string{topic},
 		MaxBytes:              10e6,
 		CommitInterval:        time.Second,
 		Dialer:                k.dialer(),
@@ -47,10 +47,10 @@ func (k *K) Reader() *kafka.Reader {
 	return reader
 }
 
-func (k *K) Writer() *kafka.Writer {
+func (k *K) Writer(topic string) *kafka.Writer {
 	w := kafka.NewWriter(kafka.WriterConfig{
 		Brokers:          []string{k.c.Kafka.ServerAddr},
-		Topic:            k.c.Kafka.Topic,
+		Topic:            topic,
 		Balancer:         &kafka.Hash{},
 		Dialer:           k.dialer(),
 		CompressionCodec: kafka.Zstd.Codec(),

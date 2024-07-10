@@ -18,8 +18,6 @@ message Logger {
 message Kafka {
     string key_file_path = 1;
     string cert_file_path = 2;
-    string topic = 3;
-    string groupId = 4;
     string bootstrap_server_addr = 5;
     string server_addr = 6;
     string file_path = 7;

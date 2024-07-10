@@ -16,13 +16,14 @@ type ProduceConfig struct {
 	Round    int
 	Mode     string
 	Data     string
+	Topic    string
 }
 
 func Run(configPath string, p ProduceConfig) {
 	c := config.NewConfig(configPath)
 	l := log.NewLogger(c)
 	k := k.NewKafka(c, l)
-	w := k.Writer()
+	w := k.Writer(p.Topic)
 
 	switch p.Mode {
 	case "d":

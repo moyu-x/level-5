@@ -24,4 +24,5 @@ func init() {
 	producerCmd.Flags().IntVarP(&producerConfig.Round, "round", "r", 1, "replay round")
 	producerCmd.Flags().StringVarP(&producerConfig.Mode, "mode", "m", "r", "producer mode: r -> replay, f -> fake data")
 	producerCmd.Flags().StringVarP(&producerConfig.Data, "data", "d", "", "kafka data")
+	producerCmd.Flags().StringVarP(&producerConfig.Topic, "topic", "t", "", "kafka topic")
 }
