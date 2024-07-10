@@ -25,6 +25,5 @@ func Run(configPath string, cc ConsumerConfig) {
 			continue
 		}
 		l.Info().Msg(string(message.Value))
-
 	}
 }
