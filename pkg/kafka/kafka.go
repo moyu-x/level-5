@@ -41,6 +41,7 @@ func (k *K) Reader(topic string, groupId string, serverAddr string) *kafka.Reade
 		QueueCapacity:         1024,
 		WatchPartitionChanges: true,
 		StartOffset:           kafka.LastOffset,
+		RetentionTime:         time.Minute * 1,
 		Logger:                kafka.LoggerFunc(k.infoF),
 		ErrorLogger:           kafka.LoggerFunc(k.errorF),
 	})
@@ -67,7 +68,5 @@ func (k *K) infoF(msg string, a ...interface{}) {
 }
 
 func (k *K) errorF(msg string, a ...interface{}) {
-	if k.c.Logger.KafkaLevel == "error" {
-		k.l.Error().Msgf(msg, a...)
-	}
+	k.l.Error().Msgf(msg, a...)
 }

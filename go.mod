@@ -4,6 +4,8 @@ go 1.22.4
 
 require (
 	github.com/brianvoe/gofakeit/v7 v7.0.4
+	github.com/bytedance/sonic v1.12.0
+	github.com/expr-lang/expr v1.16.9
 	github.com/knadh/koanf/parsers/toml v0.1.0
 	github.com/knadh/koanf/providers/file v0.1.0
 	github.com/knadh/koanf/v2 v2.1.1
@@ -15,7 +17,6 @@ require (
 )
 
 require (
-	github.com/bytedance/sonic v1.12.0 // indirect
 	github.com/bytedance/sonic/loader v0.2.0 // indirect
 	github.com/cloudwego/base64x v0.1.4 // indirect
 	github.com/cloudwego/iasm v0.2.0 // indirect
