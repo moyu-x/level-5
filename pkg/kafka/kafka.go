@@ -61,9 +61,13 @@ func (k *K) Writer(topic string, serverAddr string) *kafka.Writer {
 }
 
 func (k *K) infoF(msg string, a ...interface{}) {
-	k.l.Info().Msgf(msg, a...)
+	if k.c.Logger.KafkaLevel == "info" {
+		k.l.Info().Msgf(msg, a...)
+	}
 }
 
 func (k *K) errorF(msg string, a ...interface{}) {
-	k.l.Error().Msgf(msg, a...)
+	if k.c.Logger.KafkaLevel == "error" {
+		k.l.Error().Msgf(msg, a...)
+	}
 }

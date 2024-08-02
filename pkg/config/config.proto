@@ -13,6 +13,7 @@ message Bootstrap {
 
 message Logger {
   string level = 1;
+  string kafka_level=2;
 }
 
 message Kafka {
