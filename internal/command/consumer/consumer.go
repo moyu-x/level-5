@@ -8,16 +8,17 @@ import (
 	"github.com/moyu-x/level-5/pkg/log"
 )
 
-type ConsumerConfig struct {
-	Topic   string
-	GroupID string
+type Config struct {
+	Topic     string
+	GroupID   string
+	ServerAdd string
 }
 
-func Run(configPath string, cc ConsumerConfig) {
+func Run(configPath string, cc Config) {
 	c := config.NewConfig(configPath)
 	l := log.NewLogger(c)
 	k := kafka.NewKafka(c, l)
-	r := k.Reader(cc.Topic, cc.GroupID)
+	r := k.Reader(cc.Topic, cc.GroupID, cc.ServerAdd)
 	for {
 		message, err := r.ReadMessage(context.Background())
 		if err != nil {

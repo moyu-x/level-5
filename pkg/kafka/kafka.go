@@ -15,11 +15,11 @@ type K struct {
 }
 
 func NewKafka(c *config.Bootstrap, l *zerolog.Logger) *K {
-	kafka := &K{
+	k := &K{
 		c: c, l: l,
 	}
 
-	return kafka
+	return k
 }
 
 func (k *K) dialer() *kafka.Dialer {
@@ -30,9 +30,9 @@ func (k *K) dialer() *kafka.Dialer {
 	}
 }
 
-func (k *K) Reader(topic string, groupId string) *kafka.Reader {
+func (k *K) Reader(topic string, groupId string, serverAddr string) *kafka.Reader {
 	reader := kafka.NewReader(kafka.ReaderConfig{
-		Brokers:               []string{k.c.Kafka.ServerAddr},
+		Brokers:               []string{serverAddr},
 		GroupID:               groupId,
 		GroupTopics:           []string{topic},
 		MaxBytes:              10e6,
@@ -47,9 +47,9 @@ func (k *K) Reader(topic string, groupId string) *kafka.Reader {
 	return reader
 }
 
-func (k *K) Writer(topic string) *kafka.Writer {
+func (k *K) Writer(topic string, serverAddr string) *kafka.Writer {
 	w := kafka.NewWriter(kafka.WriterConfig{
-		Brokers:          []string{k.c.Kafka.ServerAddr},
+		Brokers:          []string{serverAddr},
 		Topic:            topic,
 		Balancer:         &kafka.Hash{},
 		Dialer:           k.dialer(),

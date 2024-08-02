@@ -1,6 +1,3 @@
-/*
-Copyright © 2024 NAME HERE <EMAIL ADDRESS>
-*/
 package cmd
 
 import (
@@ -9,7 +6,7 @@ import (
 	"github.com/moyu-x/level-5/internal/command/consumer"
 )
 
-var cc consumer.ConsumerConfig
+var cc consumer.Config
 
 // consumerCmd represents the consumer command
 var consumerCmd = &cobra.Command{
@@ -25,4 +22,5 @@ func init() {
 	kafkaCmd.AddCommand(consumerCmd)
 	consumerCmd.Flags().StringVarP(&cc.Topic, "topic", "t", "", "topic name")
 	consumerCmd.Flags().StringVarP(&cc.GroupID, "group-id", "g", "", "group id")
+	consumerCmd.Flags().StringVarP(&cc.ServerAdd, "server-add", "s", "", "server address")
 }

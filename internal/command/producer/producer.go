@@ -2,31 +2,34 @@ package producer
 
 import (
 	"context"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/rs/zerolog"
 	"github.com/segmentio/kafka-go"
 
 	"github.com/moyu-x/level-5/internal/fake"
 	"github.com/moyu-x/level-5/pkg/config"
-	k "github.com/moyu-x/level-5/pkg/kafka"
+	lkafka "github.com/moyu-x/level-5/pkg/kafka"
 	"github.com/moyu-x/level-5/pkg/log"
 )
 
 type ProduceConfig struct {
-	FilePath string
-	Round    int
-	Mode     string
-	Data     string
-	Topic    string
-	FakeType string
+	FilePath   string
+	Round      int
+	Mode       string
+	Data       string
+	Topic      string
+	FakeType   string
+	ServerAddr string
 }
 
 func Run(configPath string, p ProduceConfig) {
 	c := config.NewConfig(configPath)
 	l := log.NewLogger(c)
-	k := k.NewKafka(c, l)
-	w := k.Writer(p.Topic)
+	k := lkafka.NewKafka(c, l)
+	w := k.Writer(p.Topic, p.ServerAddr)
 
 	producer := NewProducer(p, l, w)
 
@@ -79,6 +82,8 @@ func (p *Producer) fakeData() {
 	var msgs []kafka.Message
 	count := 0
 
+	ts := time.Now().UnixMilli()
+
 	for i := 0; i < p.pc.Round; i++ {
 		if count == 1000 {
 			err := p.writer.WriteMessages(ctx, msgs...)
@@ -91,12 +96,11 @@ func (p *Producer) fakeData() {
 
 		data := p.pc.Data
 
-		switch p.pc.FakeType {
-		case "sip":
-			data = strings.ReplaceAll(data, "{{sip}}", f.IPv4Address())
-		case "dip":
-			data = strings.ReplaceAll(data, "{{dip}}", f.IPv4Address())
-		}
+		data = strings.ReplaceAll(data, "{{sip}}", f.IPv4Address())
+		data = strings.ReplaceAll(data, "{{dip}}", f.IPv4Address())
+		data = strings.ReplaceAll(data, "{{sport}}", strconv.Itoa(f.Number(0, 65535)))
+		data = strings.ReplaceAll(data, "{{dport}}", strconv.Itoa(f.Number(0, 65535)))
+		data = strings.ReplaceAll(data, "{{ts}}", strconv.FormatInt(ts, 10))
 
 		fakeData := kafka.Message{
 			Value: []byte(data),
