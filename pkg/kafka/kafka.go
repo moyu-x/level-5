@@ -3,20 +3,19 @@ package kafka
 import (
 	"time"
 
-	"github.com/rs/zerolog"
-	kafka "github.com/segmentio/kafka-go"
+	"github.com/rs/zerolog/log"
+	"github.com/segmentio/kafka-go"
 
 	"github.com/moyu-x/level-5/pkg/config"
 )
 
 type K struct {
 	c *config.Bootstrap
-	l *zerolog.Logger
 }
 
-func NewKafka(c *config.Bootstrap, l *zerolog.Logger) *K {
+func NewKafka(c *config.Bootstrap) *K {
 	k := &K{
-		c: c, l: l,
+		c: c,
 	}
 
 	return k
@@ -26,7 +25,7 @@ func (k *K) dialer() *kafka.Dialer {
 	return &kafka.Dialer{
 		Timeout:   10 * time.Second,
 		DualStack: true,
-		TLS:       Tls(k.l, k.c),
+		TLS:       Tls(k.c),
 	}
 }
 
@@ -63,10 +62,10 @@ func (k *K) Writer(topic string, serverAddr string) *kafka.Writer {
 
 func (k *K) infoF(msg string, a ...interface{}) {
 	if k.c.Logger.KafkaLevel == "info" {
-		k.l.Info().Msgf(msg, a...)
+		log.Info().Msgf(msg, a...)
 	}
 }
 
 func (k *K) errorF(msg string, a ...interface{}) {
-	k.l.Error().Msgf(msg, a...)
+	log.Error().Msgf(msg, a...)
 }

@@ -1,17 +1,17 @@
-package ants
+package pool
 
 import (
 	"os"
 	"runtime"
 
 	"github.com/panjf2000/ants"
-	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
-func NewAnts(l *zerolog.Logger) *ants.Pool {
+func NewAnts() *ants.Pool {
 	pool, err := ants.NewPool(runtime.NumCPU()*2, ants.WithPreAlloc(true))
 	if err != nil {
-		l.Error().Msgf("init ants pool error. reason: %v", err)
+		log.Error().Msgf("init pool pool error. reason: %v", err)
 		os.Exit(-1)
 	}
 

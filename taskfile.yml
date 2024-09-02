@@ -16,9 +16,12 @@ tasks:
       - go mod tidy
   build:
     desc: Build the application
+    vars:
+      OS: "linux"  # 默认值为 linux
+      ARCH: "amd64" # 默认值为 amd64
     cmds:
-      - mkdir -p build
-      - go build -o ./build/l5 .
+      - echo "Building for OS={{.OS}}, ARCH={{.ARCH}}"
+      - GOOS={{.OS}} GOARCH={{.ARCH}} go build -ldflags="-s -w"  -o ./build/l5-{{.OS}}-{{.ARCH}} .
   fmt:
     desc: Format the code
     cmds:

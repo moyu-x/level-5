@@ -1,18 +1,24 @@
 package producer
 
 import (
+	"bufio"
 	"context"
+	"os"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/rs/zerolog"
+	"github.com/bytedance/sonic"
+	"github.com/gookit/goutil/maputil"
+	"github.com/panjf2000/ants"
+	"github.com/rs/zerolog/log"
 	"github.com/segmentio/kafka-go"
 
 	"github.com/moyu-x/level-5/internal/fake"
 	"github.com/moyu-x/level-5/pkg/config"
 	lkafka "github.com/moyu-x/level-5/pkg/kafka"
-	"github.com/moyu-x/level-5/pkg/log"
+	"github.com/moyu-x/level-5/pkg/logger"
+	"github.com/moyu-x/level-5/pkg/pool"
 )
 
 type ProduceConfig struct {
@@ -26,32 +32,36 @@ type ProduceConfig struct {
 }
 
 func Run(configPath string, p ProduceConfig) {
+	ctx := context.Background()
 	c := config.NewConfig(configPath)
-	l := log.NewLogger(c)
-	k := lkafka.NewKafka(c, l)
+	k := lkafka.NewKafka(c)
+	antsPool := pool.NewAnts()
+	logger.NewLogger(c)
 	w := k.Writer(p.Topic, p.ServerAddr)
 
-	producer := NewProducer(p, l, w)
+	producer := NewProducer(ctx, p, w, antsPool)
 
 	switch p.Mode {
 	case "d":
 		producer.replayData()
 	case "f":
 		producer.fakeData()
+	case "i":
+		producer.fromFile()
 	default:
-		l.Error().Msg("can't found any match mode")
+		log.Error().Msg("can't found any match mode")
 	}
 }
 
 type Producer struct {
+	ctx    context.Context
 	pc     ProduceConfig
-	logger *zerolog.Logger
-	log    *zerolog.Logger
 	writer *kafka.Writer
+	pool   *ants.Pool
 }
 
-func NewProducer(pc ProduceConfig, l *zerolog.Logger, w *kafka.Writer) *Producer {
-	return &Producer{pc, l, l, w}
+func NewProducer(ctx context.Context, pc ProduceConfig, w *kafka.Writer, ants *ants.Pool) *Producer {
+	return &Producer{ctx, pc, w, ants}
 }
 
 func (p *Producer) replayData() {
@@ -59,7 +69,7 @@ func (p *Producer) replayData() {
 		msgs := messages(p.pc.Round, p.pc.Data)
 		err := p.writer.WriteMessages(context.Background(), msgs...)
 		if err != nil {
-			p.log.Error().Msgf("send kafka data has error. reason: %v", err)
+			log.Error().Msgf("send kafka data has error. reason: %v", err)
 		}
 	}
 }
@@ -77,7 +87,7 @@ func messages(size int, data string) []kafka.Message {
 
 func (p *Producer) fakeData() {
 	ctx := context.Background()
-	p.log.Info().Msg("start to send fake data")
+	log.Info().Msg("start to send fake data")
 	f := fake.New()
 	var msgs []kafka.Message
 	count := 0
@@ -88,7 +98,7 @@ func (p *Producer) fakeData() {
 		if count == 1000 {
 			err := p.writer.WriteMessages(ctx, msgs...)
 			if err != nil {
-				p.log.Error().Msgf("send kafka data has error. reason: %v", err)
+				log.Error().Msgf("send kafka data has error. reason: %v", err)
 			}
 			msgs = []kafka.Message{}
 			count = 0
@@ -115,8 +125,53 @@ func (p *Producer) fakeData() {
 }
 
 func (p *Producer) flushMessage(ctx context.Context, msgs []kafka.Message) {
+	log.Info().Msgf("flush %d messages", len(msgs))
 	err := p.writer.WriteMessages(ctx, msgs...)
 	if err != nil {
-		p.log.Error().Msgf("send kafka data has error. reason: %v", err)
+		log.Error().Msgf("send kafka data has error. reason: %v", err)
 	}
+}
+
+func (p *Producer) fromFile() {
+	// read file from one by one
+	log.Info().Msg("start to send data from file")
+	file, err := os.Open(p.pc.FilePath)
+	if err != nil {
+		log.Fatal().Msg("can't open file")
+		panic(err)
+	}
+	defer file.Close()
+	scanner := bufio.NewScanner(file)
+	var msgs []kafka.Message
+	count := 0
+	for scanner.Scan() {
+		data := scanner.Text()
+		var raw map[string]interface{}
+		err := sonic.UnmarshalString(data, &raw)
+		if err != nil {
+			log.Error().Msgf("can't unmarshal data. reason: %v", err)
+			continue
+		}
+		if maputil.HasKey(raw, "ts") {
+			raw["ts"] = time.Now().UnixMilli()
+		}
+
+		data, err = sonic.MarshalString(raw)
+		if err != nil {
+			log.Error().Msgf("can't marshal data. reason: %v", err)
+			continue
+		}
+
+		msgs = append(msgs, kafka.Message{
+			Value: []byte(data),
+		})
+		count++
+
+		if count >= 1000 {
+			p.flushMessage(p.ctx, msgs)
+			msgs = []kafka.Message{}
+			count = 0
+		}
+	}
+	p.flushMessage(p.ctx, msgs)
 }

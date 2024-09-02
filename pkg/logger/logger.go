@@ -1,15 +1,16 @@
-package log
+package logger
 
 import (
 	"os"
 	"time"
 
 	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 
 	"github.com/moyu-x/level-5/pkg/config"
 )
 
-func NewLogger(c *config.Bootstrap) *zerolog.Logger {
+func NewLogger(c *config.Bootstrap) {
 	switch c.Logger.
 		Level {
 	case "info":
@@ -19,6 +20,5 @@ func NewLogger(c *config.Bootstrap) *zerolog.Logger {
 	}
 
 	output := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.DateTime}
-	logger := zerolog.New(output).With().Timestamp().Logger()
-	return &logger
+	log.Logger = zerolog.New(output).With().Timestamp().Logger()
 }
