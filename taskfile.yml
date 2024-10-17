@@ -1,5 +1,16 @@
 version: '3'
 
+vars:
+  OS: "linux"  # 默认值为 linux
+  ARCH: "amd64" # 默认值为 amd64
+  EXT:
+    sh: |
+      if [ "{{.OS}}" = "windows" ]; then
+        echo ".exe"
+      else
+        echo ""
+      fi
+
 tasks:
   default:
     cmds:
@@ -16,12 +27,9 @@ tasks:
       - go mod tidy
   build:
     desc: Build the application
-    vars:
-      OS: "linux"  # 默认值为 linux
-      ARCH: "amd64" # 默认值为 amd64
     cmds:
       - echo "Building for OS={{.OS}}, ARCH={{.ARCH}}"
-      - GOOS={{.OS}} GOARCH={{.ARCH}} go build -ldflags="-s -w"  -o ./build/l5-{{.OS}}-{{.ARCH}} .
+      - GOOS={{.OS}} GOARCH={{.ARCH}} go build -ldflags="-s -w"  -o ./build/l5-{{.OS}}-{{.ARCH}}{{.EXT}} .
   fmt:
     desc: Format the code
     cmds:
