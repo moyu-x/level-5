@@ -42,7 +42,7 @@ func Run(configPath string, p ProduceConfig) {
 	producer := NewProducer(ctx, p, w, antsPool)
 
 	switch p.Mode {
-	case "d":
+	case "r":
 		producer.replayData()
 	case "f":
 		producer.fakeData()
