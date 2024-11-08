@@ -29,6 +29,7 @@ type ProduceConfig struct {
 	Topic      string
 	FakeType   string
 	ServerAddr string
+	BatchSize  int
 }
 
 func Run(configPath string, p ProduceConfig) {
@@ -43,7 +44,7 @@ func Run(configPath string, p ProduceConfig) {
 
 	switch p.Mode {
 	case "r":
-		producer.replayData()
+		producer.replayData(ctx)
 	case "f":
 		producer.fakeData()
 	case "i":
@@ -64,10 +65,25 @@ func NewProducer(ctx context.Context, pc ProduceConfig, w *kafka.Writer, ants *a
 	return &Producer{ctx, pc, w, ants}
 }
 
-func (p *Producer) replayData() {
-	if p.pc.Round <= 1000 {
+func (p *Producer) replayData(ctx context.Context) {
+	if p.pc.Round <= p.pc.BatchSize {
 		msgs := messages(p.pc.Round, p.pc.Data)
-		err := p.writer.WriteMessages(context.Background(), msgs...)
+		err := p.writer.WriteMessages(ctx, msgs...)
+		if err != nil {
+			log.Error().Msgf("send kafka data has error. reason: %v", err)
+		}
+	} else {
+		i := 0
+		msgs := messages(p.pc.BatchSize, p.pc.Data)
+		for ; i < p.pc.Round; i += p.pc.BatchSize {
+			err := p.writer.WriteMessages(ctx, msgs...)
+			if err != nil {
+				log.Error().Msgf("send kafka data has error. reason: %v", err)
+			}
+			log.Info().Msgf("round %d, cap %d", i, len(msgs))
+		}
+
+		err := p.writer.WriteMessages(ctx, msgs[:p.pc.Round-i]...)
 		if err != nil {
 			log.Error().Msgf("send kafka data has error. reason: %v", err)
 		}
@@ -167,7 +183,7 @@ func (p *Producer) fromFile() {
 		})
 		count++
 
-		if count >= 1000 {
+		if count >= p.pc.BatchSize {
 			p.flushMessage(p.ctx, msgs)
 			msgs = []kafka.Message{}
 			count = 0

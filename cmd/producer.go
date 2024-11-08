@@ -27,4 +27,5 @@ func init() {
 	producerCmd.Flags().StringVarP(&producerConfig.Topic, "topic", "t", "", "kafka topic")
 	producerCmd.Flags().StringVarP(&producerConfig.FakeType, "type", "f", "", "fake type")
 	producerCmd.Flags().StringVarP(&producerConfig.ServerAddr, "server-address", "s", "", "server address")
+	producerCmd.Flags().IntVarP(&producerConfig.BatchSize, "batch-size", "b", 1024, "batch size")
 }

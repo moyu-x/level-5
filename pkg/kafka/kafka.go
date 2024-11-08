@@ -56,6 +56,7 @@ func (k *K) Writer(topic string, serverAddr string) *kafka.Writer {
 		CompressionCodec: kafka.Zstd.Codec(),
 		Logger:           kafka.LoggerFunc(k.infoF),
 		ErrorLogger:      kafka.LoggerFunc(k.errorF),
+		RequiredAcks:     0,
 	})
 	return w
 }
