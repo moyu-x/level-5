@@ -83,10 +83,13 @@ func (p *Producer) replayData(ctx context.Context) {
 			log.Info().Msgf("round %d, cap %d", i, len(msgs))
 		}
 
-		err := p.writer.WriteMessages(ctx, msgs[:p.pc.Round-i]...)
-		if err != nil {
-			log.Error().Msgf("send kafka data has error. reason: %v", err)
+		if p.pc.Round-i > 0 {
+			err := p.writer.WriteMessages(ctx, msgs[:p.pc.Round-i]...)
+			if err != nil {
+				log.Error().Msgf("send kafka data has error. reason: %v", err)
+			}
 		}
+
 	}
 }
 
