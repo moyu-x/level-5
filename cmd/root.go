@@ -21,5 +21,5 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringVarP(&configPath, "config", "c", "configs/config.toml", "config path")
+	rootCmd.PersistentFlags().StringVarP(&configPath, "config", "c", "/etc/l5/config.toml", "config path")
 }
