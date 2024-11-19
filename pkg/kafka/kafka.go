@@ -22,11 +22,16 @@ func NewKafka(c *config.Bootstrap) *K {
 }
 
 func (k *K) dialer() *kafka.Dialer {
-	return &kafka.Dialer{
+	dialer := &kafka.Dialer{
 		Timeout:   10 * time.Second,
 		DualStack: true,
-		TLS:       Tls(k.c),
+		TLS:       nil,
 	}
+	if k.c.Kafka != nil && k.c.Kafka.KeyFilePath != "" && k.c.Kafka.CertFilePath != "" {
+		dialer.TLS = Tls(k.c)
+	}
+
+	return dialer
 }
 
 func (k *K) Reader(topic string, groupId string, serverAddr string) *kafka.Reader {
