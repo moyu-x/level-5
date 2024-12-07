@@ -1,3 +1,3 @@
 package common
 
-var INFO = "INFO"
+const INFO = "INFO"
