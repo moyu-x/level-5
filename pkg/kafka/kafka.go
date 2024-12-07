@@ -53,16 +53,21 @@ func (k *K) Reader(topic string, groupId string, serverAddr string) *kafka.Reade
 }
 
 func (k *K) Writer(topic string, serverAddr string) *kafka.Writer {
-	w := kafka.NewWriter(kafka.WriterConfig{
-		Brokers:          []string{serverAddr},
-		Topic:            topic,
-		Balancer:         &kafka.Hash{},
-		Dialer:           k.dialer(),
-		CompressionCodec: kafka.Zstd.Codec(),
-		Logger:           kafka.LoggerFunc(k.infoF),
-		ErrorLogger:      kafka.LoggerFunc(k.errorF),
-		RequiredAcks:     0,
-	})
+	w := &kafka.Writer{
+		Addr:         kafka.TCP(serverAddr),
+		Topic:        topic,
+		Balancer:     &kafka.Hash{},
+		Compression:  kafka.Zstd,
+		Logger:       kafka.LoggerFunc(k.infoF),
+		ErrorLogger:  kafka.LoggerFunc(k.errorF),
+		RequiredAcks: 0,
+	}
+
+	if k.c.Kafka != nil && k.c.Kafka.KeyFilePath != "" && k.c.Kafka.CertFilePath != "" {
+		w.Transport = &kafka.Transport{
+			TLS: Tls(k.c),
+		}
+	}
 	return w
 }
 
