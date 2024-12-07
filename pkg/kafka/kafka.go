@@ -6,6 +6,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/segmentio/kafka-go"
 
+	"github.com/moyu-x/level-5/pkg/common"
 	"github.com/moyu-x/level-5/pkg/config"
 )
 
@@ -72,7 +73,7 @@ func (k *K) Writer(topic string, serverAddr string) *kafka.Writer {
 }
 
 func (k *K) infoF(msg string, a ...interface{}) {
-	if k.c.Logger.KafkaLevel == "info" {
+	if k.c.Logger.KafkaLevel == common.INFO {
 		log.Info().Msgf(msg, a...)
 	}
 }
