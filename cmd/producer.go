@@ -3,10 +3,10 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/moyu-x/level-5/internal/command/producer"
+	"github.com/moyu-x/level-5/internal/command/kafka/producer"
 )
 
-var producerConfig producer.ProduceConfig
+var producerConfig producer.Config
 
 // producerCmd represents the producer command
 var producerCmd = &cobra.Command{

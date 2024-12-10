@@ -3,7 +3,7 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/moyu-x/level-5/internal/command/consumer"
+	"github.com/moyu-x/level-5/internal/command/kafka/consumer"
 )
 
 var cc consumer.Config

@@ -21,7 +21,7 @@ import (
 	"github.com/moyu-x/level-5/pkg/pool"
 )
 
-type ProduceConfig struct {
+type Config struct {
 	FilePath   string
 	Round      int
 	Mode       string
@@ -32,7 +32,7 @@ type ProduceConfig struct {
 	BatchSize  int
 }
 
-func Run(configPath string, p ProduceConfig) {
+func Run(configPath string, p Config) {
 	ctx := context.Background()
 	c := config.NewConfig(configPath)
 	k := lkafka.NewKafka(c)
@@ -56,12 +56,12 @@ func Run(configPath string, p ProduceConfig) {
 
 type Producer struct {
 	ctx    context.Context
-	pc     ProduceConfig
+	pc     Config
 	writer *kafka.Writer
 	pool   *ants.Pool
 }
 
-func NewProducer(ctx context.Context, pc ProduceConfig, w *kafka.Writer, ants *ants.Pool) *Producer {
+func NewProducer(ctx context.Context, pc Config, w *kafka.Writer, ants *ants.Pool) *Producer {
 	return &Producer{ctx, pc, w, ants}
 }
 

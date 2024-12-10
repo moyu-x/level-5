@@ -1,8 +1,12 @@
 package kafka
 
 import (
+	"context"
+	"os"
 	"time"
 
+	"github.com/gookit/goutil/maputil"
+	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/rs/zerolog/log"
 	"github.com/segmentio/kafka-go"
 
@@ -33,6 +37,15 @@ func (k *K) dialer() *kafka.Dialer {
 	}
 
 	return dialer
+}
+
+func (k *K) dial(serverAddr string) *kafka.Conn {
+	conn, err := kafka.Dial("tcp", serverAddr)
+	if err != nil {
+		log.Fatal().Msgf("failed to dial Kafka server: %v", err)
+	}
+
+	return conn
 }
 
 func (k *K) Reader(topic string, groupId string, serverAddr string) *kafka.Reader {
@@ -70,6 +83,46 @@ func (k *K) Writer(topic string, serverAddr string) *kafka.Writer {
 		}
 	}
 	return w
+}
+
+func (k *K) ListTopics(serverAddr string) {
+	dial := k.dialer()
+	conn, err := dial.DialContext(context.Background(), "tcp", serverAddr)
+	if err != nil {
+		log.Fatal().Msgf("failed to dial Kafka server: %v", err)
+	}
+	defer conn.Close()
+	partitions, err := conn.ReadPartitions()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	m := map[string]int{}
+
+	for _, p := range partitions {
+		if p.Topic == "__consumer_offsets" {
+			continue
+		}
+		topicName := p.Topic
+		if maputil.HasKey(m, topicName) {
+			m[topicName] = m[topicName] + 1
+			continue
+		}
+		m[p.Topic] = 1
+	}
+
+	k.renderTable(m)
+}
+
+func (k *K) renderTable(m map[string]int) {
+	t := table.NewWriter()
+	t.SetOutputMirror(os.Stdout)
+	t.AppendHeader(table.Row{"topic name", "partition count"})
+
+	for i := range m {
+		t.AppendRow(table.Row{i, m[i]})
+	}
+	t.Render()
 }
 
 func (k *K) infoF(msg string, a ...interface{}) {

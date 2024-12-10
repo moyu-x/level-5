@@ -25,7 +25,7 @@ func Run(configPath string, cc Config) {
 	logger.NewLogger(c)
 	k := kafka.NewKafka(c)
 	r := k.Reader(cc.Topic, cc.GroupID, cc.ServerAdd)
-	pool := pool.NewAnts()
+	antsPool := pool.NewAnts()
 
 	if cc.Filter == "" {
 		for {
@@ -49,7 +49,7 @@ func Run(configPath string, cc Config) {
 				continue
 			}
 			content := string(message.Value)
-			_ = pool.Submit(func() {
+			_ = antsPool.Submit(func() {
 				var data map[string]interface{}
 				err = sonic.UnmarshalString(content, &data)
 				if err != nil {
