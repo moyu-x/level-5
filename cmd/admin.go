@@ -20,4 +20,9 @@ var adminCmd = &cobra.Command{
 func init() {
 	kafkaCmd.AddCommand(adminCmd)
 	adminCmd.Flags().StringVarP(&adminConfig.ServerAddr, "server-add", "s", "", "server address")
+	adminCmd.Flags().StringVarP(&adminConfig.Mode, "mode", "m", "list-topic", "admin mode")
+	adminCmd.Flags().IntVarP(&adminConfig.Partition, "partition", "p", 9, "partition")
+	adminCmd.Flags().IntVarP(&adminConfig.Replication, "replication", "r", 1, "replication")
+	adminCmd.Flags().StringVarP(&adminConfig.Topic, "topic", "t", "", "topic name")
+	adminCmd.Flags().StringVarP(&adminConfig.GroupId, "group-id", "g", "", "group id")
 }
