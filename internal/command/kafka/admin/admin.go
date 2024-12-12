@@ -31,6 +31,8 @@ func Run(globalCfgPath string, cfg Config) {
 		k.ListConsumerGroups(cfg.ServerAddr)
 	case "delete-group":
 		k.DeleteGroup(cfg.GroupId, cfg.ServerAddr)
+	case "create-topic":
+		k.CreateTopic(cfg.Topic, cfg.Partition, cfg.Replication, cfg.ServerAddr)
 	default:
 		log.Error().Msgf("unknown mode: %s", cfg.Mode)
 	}
