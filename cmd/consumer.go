@@ -23,7 +23,8 @@ func init() {
 	consumerCmd.Flags().StringVarP(&cc.Topic, "topic", "t", "", "topic name")
 	consumerCmd.Flags().StringVarP(&cc.GroupID, "group-id", "g", "", "group id")
 	consumerCmd.Flags().StringVarP(&cc.ServerAdd, "server-add", "s", "", "server address")
-	consumerCmd.Flags().StringVarP(&cc.Filter, "filter", "f", "", "filter, doc is: https://expr-lang.org/docs/language-definition")
+	consumerCmd.Flags().
+		StringVarP(&cc.Filter, "filter", "f", "", "filter, doc is: https://expr-lang.org/docs/language-definition")
 	consumerCmd.Flags().StringVarP(&cc.Mode, "model", "m", "console", "consumer mode")
 	consumerCmd.Flags().StringVarP(&cc.FilePath, "output", "o", "", "output file")
 }
