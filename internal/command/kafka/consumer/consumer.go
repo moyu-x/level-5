@@ -4,6 +4,9 @@ import (
 	"context"
 	"os"
 
+	"github.com/bytedance/sonic"
+	"github.com/expr-lang/expr"
+	"github.com/expr-lang/expr/vm"
 	"github.com/rs/zerolog/log"
 	"github.com/segmentio/kafka-go"
 
@@ -29,7 +32,7 @@ func Run(configPath string, cc Config) {
 
 	switch cc.Mode {
 	case "console":
-		consumer(r, func(it string) {
+		consumer(r, cc.Filter, func(it string) {
 			log.Info().Msg(it)
 		})
 	case "file":
@@ -37,53 +40,13 @@ func Run(configPath string, cc Config) {
 		file, _ := os.OpenFile(cc.FilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
 		defer file.Close()
 
-		consumer(r, func(it string) {
+		consumer(r, cc.Filter, func(it string) {
 			file.WriteString(it + "\n")
 		})
 	default:
 		log.Fatal().Msg("mode is not support")
 
 	}
-
-	// if cc.Filter == "" {
-	// 	for {
-	// 		message, err := r.ReadMessage(context.Background())
-	// 		if err != nil {
-	// 			log.Error().Msgf("read http kafka data has oucur error. reason: %v", err)
-	// 			continue
-	// 		}
-	// 		log.Info().Msg(string(message.Value))
-	// 	}
-	// } else {
-	// 	compile, err := expr.Compile(cc.Filter)
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
-
-	// 	for {
-	// 		message, err := r.ReadMessage(context.Background())
-	// 		if err != nil {
-	// 			log.Error().Msgf("read http kafka data has oucur error. reason: %v", err)
-	// 			continue
-	// 		}
-	// 		content := string(message.Value)
-	// 		_ = antsPool.Submit(func() {
-	// 			var data map[string]interface{}
-	// 			err = sonic.UnmarshalString(content, &data)
-	// 			if err != nil {
-	// 				log.Error().Msgf("unmarshal http kafka data has oucur error. reason: %v", err)
-	// 				return
-	// 			}
-	// 			out, err := expr.Run(compile, data)
-	// 			if err != nil {
-	// 				log.Error().Msgf("run http kafka data has oucur error. reason: %v", err)
-	// 			}
-	// 			if out.(bool) {
-	// 				log.Info().Msg(content)
-	// 			}
-	// 		})
-	// 	}
-	// }
 }
 
 func createFile(filepath string) {
@@ -99,13 +62,36 @@ func createFile(filepath string) {
 	log.Info().Msgf("file %s already exists", filepath)
 }
 
-func consumer(r *kafka.Reader, fn func(it string)) {
+func consumer(r *kafka.Reader, filter string, fn func(it string)) {
+	var compile *vm.Program
 	for {
 		message, err := r.ReadMessage(context.Background())
 		if err != nil {
 			log.Error().Msgf("read http kafka data has oucur error. reason: %v", err)
 			continue
 		}
+		if compile == nil && filter != "" {
+			compile, err = expr.Compile(filter)
+			if err != nil {
+				log.Fatal().Msgf("compile filter has oucur error. reason: %v", err)
+			}
+		} else if compile != nil && filter != "" {
+			var data map[string]interface{}
+			err = sonic.UnmarshalString(string(message.Value), &data)
+			if err != nil {
+				log.Error().Msgf("unmarshal kafka data has oucur error. reason: %v", err)
+				continue
+			}
+			out, err := expr.Run(compile, data)
+			if err != nil {
+				log.Error().Msgf("run filter has oucur error. reason: %v", err)
+				continue
+			}
+			if !out.(bool) {
+				continue
+			}
+		}
+
 		fn(string(message.Value))
 	}
 }
