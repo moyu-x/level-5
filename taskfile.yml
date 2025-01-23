@@ -29,7 +29,7 @@ tasks:
     desc: Build the application
     cmds:
       - echo "Building for OS={{.OS}}, ARCH={{.ARCH}}"
-      - GOOS={{.OS}} GOARCH={{.ARCH}} go build -ldflags="-s -w"  -o ./build/l5-{{.OS}}-{{.ARCH}}{{.EXT}} .
+      - CGO_ENABLED=0 GOOS={{.OS}} CGO_ENABLED=0 GOARCH={{.ARCH}}  go build -ldflags="-s -w" -o ./build/l5-{{.OS}}-{{.ARCH}}{{.EXT}} .
   fmt:
     desc: Format the code
     cmds:
