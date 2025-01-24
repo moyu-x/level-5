@@ -66,30 +66,22 @@ func NewProducer(ctx context.Context, pc Config, w *kafka.Writer, ants *ants.Poo
 }
 
 func (p *Producer) replayData(ctx context.Context) {
-	if p.pc.Round <= p.pc.BatchSize {
-		msgs := messages(p.pc.Round, p.pc.Data)
+	round := p.pc.Round / p.pc.BatchSize
+	msgs := messages(p.pc.BatchSize, p.pc.Data)
+	for i := 0; i < round; i++ {
 		err := p.writer.WriteMessages(ctx, msgs...)
 		if err != nil {
 			log.Error().Msgf("send kafka data has error. reason: %v", err)
 		}
-	} else {
-		i := 0
-		msgs := messages(p.pc.BatchSize, p.pc.Data)
-		for ; i < p.pc.Round; i += p.pc.BatchSize {
-			err := p.writer.WriteMessages(ctx, msgs...)
-			if err != nil {
-				log.Error().Msgf("send kafka data has error. reason: %v", err)
-			}
-			log.Info().Msgf("round %d, cap %d", i, len(msgs))
-		}
+		log.Info().Msgf("round %d, cap %d", i, len(msgs))
+	}
 
-		if p.pc.Round-i > 0 {
-			err := p.writer.WriteMessages(ctx, msgs[:p.pc.Round-i]...)
-			if err != nil {
-				log.Error().Msgf("send kafka data has error. reason: %v", err)
-			}
+	least := p.pc.Round - p.pc.BatchSize*round
+	if least > 0 {
+		err := p.writer.WriteMessages(ctx, msgs[:least]...)
+		if err != nil {
+			log.Error().Msgf("send kafka data has error. reason: %v", err)
 		}
-
 	}
 }
 

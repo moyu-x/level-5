@@ -62,15 +62,6 @@ func (k *K) client(serverAddr string) *kafka.Client {
 	return &client
 }
 
-func (k *K) dial(serverAddr string) *kafka.Conn {
-	conn, err := kafka.Dial("tcp", serverAddr)
-	if err != nil {
-		log.Fatal().Msgf("failed to dial Kafka server: %v", err)
-	}
-
-	return conn
-}
-
 func (k *K) Reader(topic string, groupId string, serverAddr string) *kafka.Reader {
 	reader := kafka.NewReader(kafka.ReaderConfig{
 		Brokers:               []string{serverAddr},
@@ -183,6 +174,9 @@ func (k *K) ListConsumerGroups(serverAddr string) {
 	}
 	defer conn.Close()
 	partitions, err := conn.ReadPartitions()
+	if err != nil {
+		log.Fatal().Msgf("list consumer group failed: %v", err)
+	}
 
 	for _, partition := range partitions {
 		partConn, err := dial.DialPartition(context.Background(), "tcp", serverAddr, kafka.Partition{
@@ -201,47 +195,6 @@ func (k *K) ListConsumerGroups(serverAddr string) {
 		}
 		log.Info().Msgf("topic: %s, partition: %d, offset: %d", partition.Topic, partition.ID, offset)
 	}
-
-	//client := kafka.Client{
-	//	Addr:    kafka.TCP(serverAddr),
-	//	Timeout: 10 * time.Second,
-	//}
-	//
-	//if k.c.Kafka != nil && k.c.Kafka.KeyFilePath != "" && k.c.Kafka.CertFilePath != "" {
-	//	client.Transport = &kafka.Transport{
-	//		TLS: Tls(k.c),
-	//	}
-	//}
-	//req := &kafka.ListGroupsRequest{
-	//	Addr: kafka.TCP(serverAddr),
-	//}
-	//groupResp, err := client.ListGroups(context.Background(), req)
-	//if err != nil {
-	//	log.Fatal().Msgf("list consumer group failed: %v", err)
-	//}
-	//
-	//for _, g := range groupResp.Groups {
-	//	offsetFetch, err := client.OffsetFetch(context.Background(), &kafka.OffsetFetchRequest{
-	//		Addr:    kafka.TCP(serverAddr),
-	//		GroupID: g.GroupID,
-	//		//Topics:  topics,
-	//	})
-	//	if err != nil {
-	//		log.Error().Msgf("list consumer group failed: %v", err)
-	//		continue
-	//	}
-	//
-	//	for _, topic := range maputil.Keys(offsetFetch.Topics) {
-	//		reader := k.Reader(topic, g.GroupID, serverAddr)
-	//		lag, err := reader.ReadLag(context.Background())
-	//		if err != nil {
-	//			log.Error().Msgf("list consumer group failed: %v", err)
-	//			continue
-	//		}
-	//		log.Info().Msgf("group: %s, topic: %s, lag: %d", nil, topic, lag)
-	//	}
-	//
-	//}
 }
 
 // DeleteGroup 删除 consumer group
