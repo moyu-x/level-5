@@ -24,13 +24,16 @@ func Tls(c *config.Bootstrap) *tls.Config {
 }
 
 func buildTlsConfig(c *config.Bootstrap) *tls.Config {
-	keyPair, err := tls.X509KeyPair(getCertFile(c), getKeyFile(c))
+	certFile := readFile(c.Kafka.CertFilePath, "kafka cert file")
+	keyFile := readFile(c.Kafka.KeyFilePath, "kafka key file")
+	keyPair, err := tls.X509KeyPair(certFile, keyFile)
 	if err != nil {
-		log.Error().Msgf("build x509 key pair has error. reason: %v", err)
+		log.Error().Err(err).Msg("failed to build x509 key pair")
 	}
 
 	certPool := x509.NewCertPool()
-	certPool.AppendCertsFromPEM(getCertFile(c))
+	certPool.AppendCertsFromPEM(certFile)
+
 	return &tls.Config{
 		RootCAs:            certPool,
 		Certificates:       []tls.Certificate{keyPair},
@@ -38,19 +41,10 @@ func buildTlsConfig(c *config.Bootstrap) *tls.Config {
 	}
 }
 
-func getCertFile(c *config.Bootstrap) []byte {
-	certFile, err := os.ReadFile(c.Kafka.CertFilePath)
+func readFile(path, description string) []byte {
+	data, err := os.ReadFile(path)
 	if err != nil {
-		log.Error().Msgf("read kafka cert file error. reason: %v", err)
+		log.Error().Err(err).Msgf("failed to read %s", description)
 	}
-	return certFile
-}
-
-// kafka.client.key
-func getKeyFile(c *config.Bootstrap) []byte {
-	keyFile, err := os.ReadFile(c.Kafka.KeyFilePath)
-	if err != nil {
-		log.Error().Msgf("read kafka key file has error. reason: %v", err)
-	}
-	return keyFile
+	return data
 }
