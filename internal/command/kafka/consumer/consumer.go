@@ -41,11 +41,13 @@ func Run(configPath string, cc Config) {
 		defer file.Close()
 
 		consumer(r, cc.Filter, func(it string) {
-			file.WriteString(it + "\n")
+			_, err := file.WriteString(it + "\n")
+			if err != nil {
+				log.Fatal().Msgf("write file has oucur error. reason: %v", err)
+			}
 		})
 	default:
 		log.Fatal().Msg("mode is not support")
-
 	}
 }
 
@@ -76,22 +78,34 @@ func consumer(r *kafka.Reader, filter string, fn func(it string)) {
 				log.Fatal().Msgf("compile filter has oucur error. reason: %v", err)
 			}
 		} else if compile != nil && filter != "" {
-			var data map[string]interface{}
-			err = sonic.UnmarshalString(string(message.Value), &data)
-			if err != nil {
-				log.Error().Msgf("unmarshal kafka data has oucur error. reason: %v", err)
-				continue
-			}
-			out, err := expr.Run(compile, data)
-			if err != nil {
-				log.Error().Msgf("run filter has oucur error. reason: %v", err)
-				continue
-			}
-			if !out.(bool) {
+			filter := filterData(message, compile)
+			if filter {
 				continue
 			}
 		}
 
 		fn(string(message.Value))
 	}
+}
+
+func filterData(message kafka.Message, compile *vm.Program) bool {
+	var data map[string]interface{}
+	err := sonic.UnmarshalString(string(message.Value), &data)
+	if err != nil {
+		log.Error().Msgf("unmarshal kafka data has oucur error. reason: %v", err)
+		return true
+	}
+	out, err := expr.Run(compile, data)
+	if err != nil {
+		log.Error().Msgf("run filter has oucur error. reason: %v", err)
+		return true
+	}
+	if b, ok := out.(bool); ok {
+		if !b {
+			return true
+		}
+	} else {
+		return true
+	}
+	return false
 }

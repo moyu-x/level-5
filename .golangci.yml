@@ -14,7 +14,7 @@ linters:
     - dupl
     - durationcheck
     - errorlint
-    - exportloopref
+    - copyloopvar
     - forbidigo
     - forcetypeassert
     - funlen
