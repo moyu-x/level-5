@@ -4,10 +4,17 @@ import (
 	"bufio"
 	"context"
 	"strconv"
+	"strings"
 
 	"github.com/cloudwego/netpoll"
 	"github.com/rs/zerolog/log"
+
+	"github.com/moyu-x/level-5/pkg/logger"
 )
+
+func init() {
+	logger.NewLogger(nil)
+}
 
 func Run(port int, protocol string) {
 	listener, err := netpoll.CreateListener(protocol, "0.0.0.0:"+strconv.Itoa(port))
@@ -42,20 +49,20 @@ func handleConnection(ctx context.Context, connection netpoll.Connection) error 
 		if err != nil {
 			return err
 		}
-		log.Info().Msgf("Received: %s", line)
+		log.Info().Msgf("Received: %s", strings.TrimSuffix(line, "\n"))
 	}
 }
 
 func onPrepare(connection netpoll.Connection) context.Context {
-	log.Printf("New connection prepared: %s", connection.RemoteAddr())
+	log.Info().Msgf("New connection prepared: %s", connection.RemoteAddr())
 	return context.Background()
 }
 
 func onConnect(ctx context.Context, connection netpoll.Connection) context.Context {
-	log.Printf("New connection established: %s", connection.RemoteAddr())
+	log.Info().Msgf("New connection established: %s", connection.RemoteAddr())
 	return ctx
 }
 
 func onDisconnect(ctx context.Context, connection netpoll.Connection) {
-	log.Printf("Connection disconnected: %s", connection.RemoteAddr())
+	log.Info().Msgf("Connection disconnected: %s", connection.RemoteAddr())
 }

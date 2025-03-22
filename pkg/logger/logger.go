@@ -11,12 +11,16 @@ import (
 )
 
 func NewLogger(c *config.Bootstrap) {
-	switch c.Logger.
-		Level {
-	case "info":
+	if c == nil {
 		zerolog.SetGlobalLevel(zerolog.InfoLevel)
-	case "debug":
-		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	} else {
+		switch c.Logger.
+			Level {
+		case "info":
+			zerolog.SetGlobalLevel(zerolog.InfoLevel)
+		case "debug":
+			zerolog.SetGlobalLevel(zerolog.DebugLevel)
+		}
 	}
 
 	output := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.DateTime}
