@@ -2,9 +2,10 @@ package json
 
 import (
 	"bufio"
-	"log"
 	"os"
 	"regexp"
+
+	"github.com/rs/zerolog/log"
 )
 
 type Config struct {
@@ -15,13 +16,13 @@ type Config struct {
 func Run(conf Config) {
 	open, err := os.Open(conf.InputPath)
 	if err != nil {
-		panic(err)
+		log.Fatal().Err(err)
 	}
 	defer open.Close()
 
 	output, err := os.Create(conf.OutputPath)
 	if err != nil {
-		panic(err)
+		log.Fatal().Err(err)
 	}
 	defer output.Close()
 
@@ -34,12 +35,12 @@ func Run(conf Config) {
 			matched := re.FindString(line)
 			_, err := writer.WriteString(matched + "\n")
 			if err != nil {
-				log.Fatalf("write failed: %v", err)
+				log.Fatal().Msgf("write failed: %v", err)
 			}
 		}
 	}
 
 	if err := scanner.Err(); err != nil {
-		log.Fatalf("scan failed: %v", err)
+		log.Fatal().Msgf("scan failed: %v", err)
 	}
 }

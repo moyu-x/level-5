@@ -44,7 +44,7 @@ func buildTlsConfig(c *config.Bootstrap) *tls.Config {
 func readFile(path, description string) []byte {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		log.Error().Err(err).Msgf("failed to read %s", description)
+		log.Fatal().Err(err).Msgf("failed to read %s", description)
 	}
 	return data
 }
