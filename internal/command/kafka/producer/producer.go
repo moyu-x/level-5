@@ -68,7 +68,7 @@ func NewProducer(ctx context.Context, pc Config, w *kafka.Writer, ants *ants.Poo
 func (p *Producer) replayData(ctx context.Context) {
 	round := p.pc.Round / p.pc.BatchSize
 	msgs := messages(p.pc.BatchSize, p.pc.Data)
-	for i := 0; i < round; i++ {
+	for i := range round {
 		err := p.writer.WriteMessages(ctx, msgs...)
 		if err != nil {
 			log.Error().Msgf("send kafka data has error. reason: %v", err)
@@ -87,7 +87,7 @@ func (p *Producer) replayData(ctx context.Context) {
 
 func messages(size int, data string) []kafka.Message {
 	var msgs []kafka.Message
-	for z := 0; z < size; z++ {
+	for range size {
 		m := kafka.Message{
 			Value: []byte(data),
 		}
@@ -105,7 +105,7 @@ func (p *Producer) fakeData() {
 
 	ts := time.Now().UnixMilli()
 
-	for i := 0; i < p.pc.Round; i++ {
+	for range p.pc.Round {
 		if count == 1000 {
 			err := p.writer.WriteMessages(ctx, msgs...)
 			if err != nil {
@@ -157,7 +157,7 @@ func (p *Producer) fromFile() {
 	count := 0
 	for scanner.Scan() {
 		data := scanner.Text()
-		var raw map[string]interface{}
+		var raw map[string]any
 		err := sonic.UnmarshalString(data, &raw)
 		if err != nil {
 			log.Error().Msgf("can't unmarshal data. reason: %v", err)
